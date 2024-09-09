@@ -1,7 +1,5 @@
 :root,* {
     cursor: none;
-    /* touch-action: none;
-    pointer-events: none; */
     user-select: none;
     touch-action: none;
 }
@@ -28,8 +26,6 @@ svg {
     bottom: 0;
     cursor: none;
 }
-/* #circle {
-} */
 #lines {
     stroke: black;
     stroke-width: 3px;
