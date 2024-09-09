@@ -12,9 +12,8 @@ const paths = [];
 let currentPath = [];
 
 const lines = document.getElementById("lines");
-function vis() {
-    let pathString = paths.map(path => "M" + path.map(point => point.join(",")).join("L")).join(" ");
-    lines.setAttribute("d", pathString);
+function svgPolyLine(paths) {
+    return paths.map(path => "M" + path.map(point => point.join(",")).join("L")).join(" ");
 }
 
 let panning = false;
@@ -31,35 +30,89 @@ function pan(e) {
     resizeViewBox();
 }
 
+// touches.length = 0: static, 1: pan, 2: zoom
+let touches = {};
+let panAnchor = [0, 0];
+let zoomAnchors = [[0, 0], [0, 0]];
+let navState = 0;
+
+const navStateHandlers = [
+    {},{
+        start: () => {
+            log("1start");
+            panAnchor = Object.values(touches)[0];
+        },
+        move: () => {
+            log("1move");
+            const [anchorX, anchorY] = panAnchor;
+            const [updateX, updateY] = Object.values(touches)[0];
+            offsetX += updateX - anchorX;
+            offsetY += updateY - anchorY;
+            resizeViewBox();
+            panAnchor = [updateX, updateY];
+        },
+        stop: () => {},
+    },{
+        start: () => {
+            log("2start");
+            zoomAnchors = Object.values(touches);
+        },
+        move: () => {},
+        stop: () => {},
+    }
+];
+
+function startLine(x, y) {
+    const position = [x - offsetX, y - offsetY];
+    currentPath = [];
+    currentPath.push(position);
+    paths.push(currentPath);
+}
+
+function drawLine(x, y) {
+    const position = [x - offsetX, y - offsetY];
+    currentPath.push(position);
+    lines.setAttribute("d", svgPolyLine(paths));
+}
+
 window.addEventListener("pointerdown", e => {
-    log(e.pointerType);
-    if (e.pointerType == "pen") {
-        let position = [e.pageX - offsetX, e.pageY - offsetY];
-        currentPath = [];
-        currentPath.push(position);
-        paths.push(currentPath);
-    } else {
-        panStart(e);
-        return;
+    switch (e.pointerType) {
+        case "touch":
+            log(`dn: ${e.pointerId}`);
+            touches[e.pointerId] = [e.clientX, e.clientY];
+            navStateHandlers[Object.entries(touches).length].start();
+            break;
+        case "pen":
+            touches = {};
+            startLine(e.pageX, e.pageY);
+            break;
     }
 });
-function cursorMove(e) {
-    if (e.pointerType == "pen") {
-        if (e.touches) e = e.touches[0];
-        let position = [e.pageX - offsetX, e.pageY - offsetY];
-        currentPath.push(position);
-        vis();
-    } else {
-        pan(e);
-        return;
+
+window.addEventListener("pointermove", e => {
+    switch (e.pointerType) {
+        case "touch":
+            touches[e.pointerId] = [e.clientX, e.clientY];
+            navStateHandlers[Object.entries(touches).length].move();
+            break;
+        case "pen":
+            touches = {};
+            drawLine(e.pageX, e.pageY);
+            break;
     }
-}
-window.addEventListener("pointermove", cursorMove);
+});
 
 window.addEventListener("pointerup", e => {
+    if (e.pointerType == "touch") {
+        log(`up: ${e.pointerId}`);
+        delete touches[e.pointerId];
+        navStateHandlers[Object.entries(touches).length].start();
+    }
+    
     currentPath = [];
 });
 
+// Stylus button hack
 history.pushState(null, null, 'forward-entry');
 history.back();
 window.addEventListener("popstate", e => {
@@ -70,7 +123,10 @@ window.addEventListener("popstate", e => {
     }
 });
 
+// Logging
 const logBox = document.getElementById("log");
 function log(text) {
-    logBox.appendChild(document.createTextNode(text + "\n"));
+    const entry = document.createElement("pre");
+    entry.textContent = text;
+    logBox.prepend(entry);
 }

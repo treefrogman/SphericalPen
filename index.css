@@ -26,10 +26,15 @@ svg {
     bottom: 0;
     cursor: none;
 }
+
 #lines {
     stroke: black;
     stroke-width: 3px;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+#log pre {
+    margin: 0;
 }

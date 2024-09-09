@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>Spherical Pen</title>
+        <style>
+
+* {
+    touch-action: none;
+}
+
+        </style>
+    </head>
+    <body>
+        <div id="log"></div>
+        <script>
+
+// Logging
+const logBox = document.getElementById("log");
+function log(text) {
+    let entry = document.createElement("pre");
+    entry.setAttribute("data-timestamp", Date.now());
+    entry.textContent = text;
+    logBox.prepend(entry);
+}
+setInterval(() => {
+    Array.from(logBox.children).splice(0,30).forEach(entry => {
+        const color = `color:hsl(0,0%,${Math.min((Date.now() - entry.getAttribute("data-timestamp"))/20, 90)}%)`;
+        entry.setAttribute("style", color);
+        console.log(color);
+    });
+}, 20);
+//,rawupdate
+"over,enter,down,move,up,cancel,out,leave,got_capture,lost_capture".split(",").forEach(word => {
+    const fixes = word.split("_");
+    if (fixes.length == 1) {
+        fixes.unshift("");
+    }
+    const eventName = fixes.join("pointer");
+    window.addEventListener(eventName, e => {
+        if (e.pointerType == "mouse") return;
+        log([e.type.split("pointer").join("_").substr(0,6), e.pointerType, e.pointerId, e.persistentDeviceId].join("\t"));
+    });
+});
+
+        </script>
+    </body>
+</html>
