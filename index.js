@@ -16,6 +16,32 @@ function svgPolyLine(paths) {
     return paths.map(path => "M" + path.map(point => point.join(",")).join("L")).join(" ");
 }
 
+function mid(p1, p2) {
+    return [(p1[0] + p2[0])/2, (p1[1] + p2[1])/2];
+}
+
+function svgQBezier(paths) {
+    return paths.map(path => {
+        const qList = path.reduce((db, point) => {
+            db.qList.push([mid(db.prevP, point), point]);
+            db.prevP = point;
+            return db;
+        }, {
+            qList: [],
+            prevP: [0,0],
+        }).qList;
+        return qList.map((bez, index, list) => {
+            if (index === 0) {
+                return `M${bez[1].join(",")} L`;
+            } else if (index === list.length - 1) {
+                return bez.map(point => point.join(",")).join(" L");
+            } else {
+                return bez.map(point => point.join(",")).join(" Q");
+            }
+        }).join(" ");
+    }).join(" ");
+}
+
 let panning = false;
 
 function panStart(e) {
@@ -72,7 +98,7 @@ function startLine(x, y) {
 function drawLine(x, y) {
     const position = [x - offsetX, y - offsetY];
     currentPath.push(position);
-    lines.setAttribute("d", svgPolyLine(paths));
+    lines.setAttribute("d", svgQBezier(paths));
 }
 
 window.addEventListener("pointerdown", e => {
