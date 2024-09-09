@@ -1,0 +1,39 @@
+:root,* {
+    cursor: none;
+    /* touch-action: none;
+    pointer-events: none; */
+    user-select: none;
+    touch-action: none;
+}
+html {
+    height: 100%;
+}
+body {
+    position: absolute;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    width: 100%;
+    height: 100%;
+    cursor: none;
+}
+svg {
+    overflow: visible;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: none;
+}
+/* #circle {
+} */
+#lines {
+    stroke: black;
+    stroke-width: 3px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
